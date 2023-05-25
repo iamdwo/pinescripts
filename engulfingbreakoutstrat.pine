@@ -1,0 +1,32 @@
+//@version=4
+strategy("Engulfing Breakout Strategy", overlay=true)
+
+// Calculate engulfing patterns
+bullishEngulfing = close > open[1] and close > open and open > close[1]
+bearishEngulfing = close < open[1] and close < open and open < close[1]
+
+// Define trend breakout conditions
+upwardTrendBreakout = high > high[1] and low > low[1]
+downwardTrendBreakout = high < high[1] and low < low[1]
+
+// Signal variable
+var bool signalTriggered = false
+
+// Buy and sell conditions
+buyCondition = bullishEngulfing and (breakoutUpward ? upwardTrendBreakout : true) and not signalTriggered
+sellCondition = bearishEngulfing and (breakoutDownward ? downwardTrendBreakout : true)
+
+// Entry and exit signals
+if buyCondition
+    strategy.entry("Buy", strategy.long)
+    signalTriggered := true
+    strategy.exit("Sell", "Buy", stop=close * 0.95)
+    
+if sellCondition and signalTriggered
+    strategy.entry("Sell", strategy.short)
+    signalTriggered := false
+    strategy.exit("Cover", "Sell", stop=close * 1.05)
+
+// Plot buy and sell signals with colors
+plotshape(buyCondition, title="Buy Signal", color=color.green, style=shape.labelup, text="BUY", location=location.belowbar, transp=0, size=size.small)
+plotshape(sellCondition, title="Sell Signal", color=color.red, style=shape.labeldown, text="SELL", location=location.abovebar, transp=0, size=size.small)
