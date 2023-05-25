@@ -1,0 +1,28 @@
+//@version=5
+strategy("Merx Strategy", overlay = true, initial_capital = 100000, default_qty_type = strategy.percent_of_equity, default_qty_value = 100, pyramiding = 0, currency = 'USD')
+
+// Indicator values and configurations
+rsi = ta.rsi(close, 14)
+ema_short = ta.ema(close, 5)
+ema_medium = ta.ema(close, 20)
+[upper, middle, lower] = ta.bb(close, 14, 2.0)
+
+// Buy and sell signals
+buy_signal = (ema_short > ema_medium or close < lower) and rsi <= 31
+sell_signal = (ema_short < ema_medium or close > upper) and rsi >= 68
+
+// Last entry, SL, and TP values
+last_entry = strategy.opentrades.entry_price(strategy.opentrades - 1)
+sl_level = last_entry * 0.925
+tp_level = last_entry * 1.25
+
+// Buying trading logic
+if buy_signal
+    strategy.entry("Long", strategy.long, alert_message = "Merx has successfully opened a position.")
+
+// Selling trading logic
+if sell_signal
+    strategy.close("Long", alert_message = "Merx has successfully closed a position.")
+
+// Stoploss and takeprofit trading logic
+strategy.exit("Stoploss/TP", "Long", stop = sl_level, limit = tp_level, alert_message = "Merx has successfully exited the market.")
